@@ -1,0 +1,4 @@
+package: github.com/ciazhar/db
+import:
+- package: github.com/ciazhar/config
+- package: gopkg.in/mgo.v2
