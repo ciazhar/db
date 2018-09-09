@@ -1,4 +1,4 @@
-package db
+package mongo
 
 import (
 	"github.com/ciazhar/config"
@@ -10,13 +10,13 @@ import (
 
 var Mongo *mgo.Database
 
-type MongoDB struct {
+type DB struct {
 	Host   string
 	Database string
 }
 
 func Init(c *config.Config) {
-	m := MongoDB{}
+	m := DB{}
 
 	m.Host = c.Get("database").Get("host").String()
 	m.Database = c.Get("database").Get("name").String()
@@ -27,15 +27,15 @@ func Init(c *config.Config) {
 	Mongo = session.DB(m.Database)
 }
 
-func (m MongoDB)Find(collection string, query interface{},skip,limit int,sort string) *mgo.Query {
+func Find(collection string, query interface{},skip,limit int,sort string) *mgo.Query {
 	return Mongo.C(collection).Find(query).Skip((skip-1)*limit).Limit(limit).Sort(sort)
 }
 
-func (m MongoDB)FindId(collection string,id string) *mgo.Query {
+func FindId(collection string,id string) *mgo.Query {
 	return Mongo.C(collection).FindId(bson.ObjectIdHex(id))
 }
 
-func (m MongoDB)Insert(collection string, payload ...interface{}) error {
+func Insert(collection string, payload ...interface{}) error {
 	for _,e := range payload {
 		if err := Mongo.C(collection).Insert(e);err!=nil{
 			return err
@@ -44,17 +44,17 @@ func (m MongoDB)Insert(collection string, payload ...interface{}) error {
 	return nil
 }
 
-func (m MongoDB)RemoveId(collection string,id string) error {
+func RemoveId(collection string,id string) error {
 	err := Mongo.C(collection).RemoveId(bson.ObjectIdHex(id))
 	return err
 }
 
-func (m MongoDB)UpdateId(collection string,anime *model.Anime) error  {
+func UpdateId(collection string,anime *model.Anime) error  {
 	err := Mongo.C(collection).UpdateId(anime.ID, &anime)
 	return err
 }
 
-func (m MongoDB)CreateIndex(collection string, attr ...string) error {
+func CreateIndex(collection string, attr ...string) error {
 	index := mgo.Index{
 		Key:        attr,
 		Unique:     true,
