@@ -27,15 +27,15 @@ func Init(c *config.Config) {
 	Mongo = session.DB(m.Database)
 }
 
-func Find(collection string, query interface{},skip,limit int,sort string) *mgo.Query {
+func (m *MongoDB)Find(collection string, query interface{},skip,limit int,sort string) *mgo.Query {
 	return Mongo.C(collection).Find(query).Skip((skip-1)*limit).Limit(limit).Sort(sort)
 }
 
-func FindId(collection string,id string) *mgo.Query {
+func (m *MongoDB)FindId(collection string,id string) *mgo.Query {
 	return Mongo.C(collection).FindId(bson.ObjectIdHex(id))
 }
 
-func Insert(collection string, payload ...interface{}) error {
+func (m *MongoDB)Insert(collection string, payload ...interface{}) error {
 	for _,e := range payload {
 		if err := Mongo.C(collection).Insert(e);err!=nil{
 			return err
@@ -44,17 +44,17 @@ func Insert(collection string, payload ...interface{}) error {
 	return nil
 }
 
-func RemoveId(collection string,id string) error {
+func (m *MongoDB)RemoveId(collection string,id string) error {
 	err := Mongo.C(collection).RemoveId(bson.ObjectIdHex(id))
 	return err
 }
 
-func UpdateId(collection string,anime *model.Anime) error  {
+func (m *MongoDB)UpdateId(collection string,anime *model.Anime) error  {
 	err := Mongo.C(collection).UpdateId(anime.ID, &anime)
 	return err
 }
 
-func CreateIndex(collection string, attr ...string) error {
+func (m *MongoDB)CreateIndex(collection string, attr ...string) error {
 	index := mgo.Index{
 		Key:        attr,
 		Unique:     true,
