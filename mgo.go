@@ -1,4 +1,4 @@
-package mongo
+package db
 
 import (
 	"github.com/ciazhar/config"
@@ -10,13 +10,13 @@ import (
 
 var Mongo *mgo.Database
 
-type DB struct {
+type MongoDB struct {
 	Host   string
 	Database string
 }
 
 func Init(c *config.Config) {
-	m := DB{}
+	m := MongoDB{}
 
 	m.Host = c.Get("database").Get("host").String()
 	m.Database = c.Get("database").Get("name").String()
