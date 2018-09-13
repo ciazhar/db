@@ -4,7 +4,6 @@ import (
 	"github.com/ciazhar/config"
 	"gopkg.in/mgo.v2"
 	"log"
-	"github.com/ciazhar/animus/model"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -27,12 +26,28 @@ func Init(c *config.Config) {
 	Mongo = session.DB(m.Database)
 }
 
-func Find(collection string, query interface{},skip,limit int,sort string) *mgo.Query {
-	return Mongo.C(collection).Find(query).Skip((skip-1)*limit).Limit(limit).Sort(sort)
+func CreateIndex(collection string, attr ...string) error {
+	index := mgo.Index{
+		Key:        attr,
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+	err := Mongo.C(collection).EnsureIndex(index)
+	return err
 }
 
-func FindId(collection string,id string) *mgo.Query {
-	return Mongo.C(collection).FindId(bson.ObjectIdHex(id))
+func Find(collection string, query interface{},payload ...interface{}) error {
+	return Mongo.C(collection).Find(query).All(&payload)
+}
+
+func FindWithPagingAndSorting(collection string, query interface{},skip,limit int,sort string,payload ...interface{}) error {
+	return Mongo.C(collection).Find(query).Skip((skip-1)*limit).Limit(limit).Sort(sort).All(&payload)
+}
+
+func FindId(collection string,id string, payload ...interface{}) error {
+	return Mongo.C(collection).FindId(bson.ObjectIdHex(id)).One(&payload)
 }
 
 func Insert(collection string, payload ...interface{}) error {
@@ -44,24 +59,22 @@ func Insert(collection string, payload ...interface{}) error {
 	return nil
 }
 
+func UpdateId(collection string,id string, q interface{}) error  {
+	err := Mongo.C(collection).UpdateId(bson.ObjectIdHex(id), &q)
+	return err
+}
+
+func SoftDelete(collection string,id string) error {
+	var record interface{}
+	if err := Mongo.C(collection).FindId(bson.ObjectIdHex(id)).One(&record); err!=nil{
+		return err
+	}
+
+	err := Mongo.C(collection).UpdateId(bson.ObjectIdHex(id), &record)
+	return err
+}
+
 func RemoveId(collection string,id string) error {
 	err := Mongo.C(collection).RemoveId(bson.ObjectIdHex(id))
-	return err
-}
-
-func UpdateId(collection string,anime *model.Anime) error  {
-	err := Mongo.C(collection).UpdateId(anime.ID, &anime)
-	return err
-}
-
-func CreateIndex(collection string, attr ...string) error {
-	index := mgo.Index{
-		Key:        attr,
-		Unique:     true,
-		DropDups:   true,
-		Background: true,
-		Sparse:     true,
-	}
-	err := Mongo.C(collection).EnsureIndex(index)
 	return err
 }
